@@ -1,5 +1,43 @@
+function renderTable(block: string): string {
+  const rows = block.trim().split("\n");
+  if (rows.length < 2) return block;
+
+  const parseRow = (row: string) =>
+    row.split("|").slice(1, -1).map((c) => c.trim());
+
+  const headers = parseRow(rows[0]);
+  // Skip separator row (row[1])
+  const bodyRows = rows.slice(2);
+
+  let html = "<table><thead><tr>";
+  for (const h of headers) {
+    html += `<th>${h}</th>`;
+  }
+  html += "</tr></thead><tbody>";
+  for (const row of bodyRows) {
+    const cells = parseRow(row);
+    html += "<tr>";
+    for (const cell of cells) {
+      html += `<td>${cell}</td>`;
+    }
+    html += "</tr>";
+  }
+  html += "</tbody></table>";
+  return html;
+}
+
 export function renderMarkdown(content: string): string {
-  let out = content
+  // Extract tables first, replace with placeholders
+  const tables: string[] = [];
+  let out = content.replace(
+    /((?:^\|.+\|$\n?){2,})/gm,
+    (_match, tableBlock: string) => {
+      tables.push(renderTable(tableBlock));
+      return `\x00TABLE${tables.length - 1}\x00`;
+    }
+  );
+
+  out = out
     // Escape HTML
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -37,6 +75,11 @@ export function renderMarkdown(content: string): string {
     /<\/blockquote>(?:<br\/>|<\/p><p>)*<blockquote>/g,
     "<br/>"
   );
+
+  // Restore tables
+  tables.forEach((table, i) => {
+    out = out.replace(`\x00TABLE${i}\x00`, table);
+  });
 
   return "<p>" + out + "</p>";
 }

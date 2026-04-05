@@ -275,6 +275,29 @@
   border-top: 1px solid var(--border);
   margin: 20px 0;
 }
+.rendered-md table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13px;
+}
+.rendered-md th,
+.rendered-md td {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.rendered-md th {
+  background: var(--surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+.rendered-md td {
+  color: var(--text-secondary);
+}
 .rendered-md .md-check {
   display: flex;
   align-items: center;
