@@ -42,6 +42,20 @@ export async function savePreferences(prefs: UIPreferences): Promise<void> {
   await db.put(PREFS_STORE, prefs, "ui");
 }
 
+export async function saveApiKey(key: string): Promise<void> {
+  const db = await getDB();
+  await db.put(PREFS_STORE, key, "apiKey");
+}
+
+export async function loadApiKey(): Promise<string | undefined> {
+  try {
+    const db = await getDB();
+    return await db.get(PREFS_STORE, "apiKey");
+  } catch {
+    return undefined;
+  }
+}
+
 export async function loadAll(): Promise<{
   apps: App[];
   preferences: UIPreferences | undefined;

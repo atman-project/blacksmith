@@ -5,8 +5,8 @@ import {
   useEffect,
   useRef,
 } from "react";
-import type { App, ViewMode } from "../types";
-import { saveApps, savePreferences, loadAll } from "./persistence";
+import type { App, ViewMode, ModelId } from "../types";
+import { saveApps, savePreferences, loadAll, loadApiKey, saveApiKey } from "./persistence";
 
 // --- Constants ---
 export const INITIAL_DOC = `# Welcome to Blacksmith
@@ -110,11 +110,13 @@ export interface StoreState {
   activeId: string;
   sidebarOpen: boolean;
   viewMode: ViewMode;
+  modelId: ModelId;
   showHistory: boolean;
   showCommitDialog: boolean;
   toast: string | null;
   isTyping: boolean;
   input: string;
+  apiKey: string;
   loaded: boolean;
 }
 
@@ -123,11 +125,13 @@ export interface StoreActions {
   setActiveId: React.Dispatch<React.SetStateAction<string>>;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setViewMode: React.Dispatch<React.SetStateAction<ViewMode>>;
+  setModelId: React.Dispatch<React.SetStateAction<ModelId>>;
   setShowHistory: React.Dispatch<React.SetStateAction<boolean>>;
   setShowCommitDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setToast: React.Dispatch<React.SetStateAction<string | null>>;
   setIsTyping: React.Dispatch<React.SetStateAction<boolean>>;
   setInput: React.Dispatch<React.SetStateAction<string>>;
+  setApiKey: (key: string) => void;
   updateApp: (id: string, updater: (a: App) => Partial<App>) => void;
 }
 
@@ -165,10 +169,11 @@ export function useAutoPersist(state: StoreState) {
         activeId: state.activeId,
         sidebarOpen: state.sidebarOpen,
         viewMode: state.viewMode,
+        modelId: state.modelId,
       });
     }, 300);
     return () => clearTimeout(prefsDebounceRef.current);
-  }, [state.activeId, state.sidebarOpen, state.viewMode, state.loaded]);
+  }, [state.activeId, state.sidebarOpen, state.viewMode, state.modelId, state.loaded]);
 }
 
 // --- Load from persistence ---
@@ -177,7 +182,10 @@ export async function loadInitialState(): Promise<{
   activeId: string;
   sidebarOpen: boolean;
   viewMode: ViewMode;
+  modelId: ModelId;
+  apiKey: string;
 }> {
+  const storedApiKey = await loadApiKey();
   const data = await loadAll();
   if (data && data.apps.length > 0) {
     // Restore nextId so new apps don't collide
@@ -192,6 +200,8 @@ export async function loadInitialState(): Promise<{
       activeId: data.preferences?.activeId || data.apps[0].id,
       sidebarOpen: data.preferences?.sidebarOpen ?? true,
       viewMode: data.preferences?.viewMode ?? "rendered",
+      modelId: data.preferences?.modelId ?? "claude-sonnet",
+      apiKey: storedApiKey ?? "",
     };
   }
   return {
@@ -199,8 +209,10 @@ export async function loadInitialState(): Promise<{
     activeId: "app-1",
     sidebarOpen: true,
     viewMode: "rendered",
+    modelId: "claude-sonnet",
+    apiKey: storedApiKey ?? "",
   };
 }
 
 // Re-export for convenience
-export { useCallback };
+export { useCallback, saveApiKey };

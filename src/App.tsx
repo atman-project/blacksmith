@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { App as AppType, ViewMode } from "./types";
+import type { App as AppType, ViewMode, ModelId } from "./types";
 import {
   StoreContext,
   INITIAL_DOC,
@@ -7,7 +7,9 @@ import {
   extractTitle,
   loadInitialState,
   useAutoPersist,
+  saveApiKey,
 } from "./lib/store";
+import { resetClient } from "./lib/ai";
 import { Sidebar } from "./components/Sidebar";
 import { Chat } from "./components/Chat";
 import { Editor } from "./components/Editor";
@@ -26,7 +28,15 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("rendered");
+  const [modelId, setModelId] = useState<ModelId>("claude-sonnet");
+  const [apiKey, setApiKeyState] = useState("");
   const [loaded, setLoaded] = useState(false);
+
+  const setApiKey = useCallback((key: string) => {
+    setApiKeyState(key);
+    saveApiKey(key);
+    resetClient();
+  }, []);
 
   // Load persisted state
   useEffect(() => {
@@ -35,6 +45,8 @@ export default function App() {
       setActiveId(data.activeId);
       setSidebarOpen(data.sidebarOpen);
       setViewMode(data.viewMode);
+      setModelId(data.modelId);
+      setApiKeyState(data.apiKey);
       setLoaded(true);
     });
   }, []);
@@ -88,6 +100,8 @@ export default function App() {
     activeId,
     sidebarOpen,
     viewMode,
+    modelId,
+    apiKey,
     showHistory,
     showCommitDialog,
     toast,
@@ -98,6 +112,8 @@ export default function App() {
     setActiveId,
     setSidebarOpen,
     setViewMode,
+    setModelId,
+    setApiKey,
     setShowHistory,
     setShowCommitDialog,
     setToast,

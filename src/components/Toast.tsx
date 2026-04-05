@@ -7,7 +7,8 @@ interface ToastProps {
 
 export function Toast({ message, onDone }: ToastProps) {
   useEffect(() => {
-    const t = setTimeout(onDone, 2500);
+    const duration = message.length > 50 ? 5000 : 2500;
+    const t = setTimeout(onDone, duration);
     return () => clearTimeout(t);
   }, [onDone]);
 

@@ -1,6 +1,8 @@
 import { useRef, useEffect, useCallback } from "react";
 import { Icons } from "./Icons";
-import { useStore, getAIResponse } from "../lib/store";
+import { ModelSelector } from "./ModelSelector";
+import { useStore } from "../lib/store";
+import { sendMessage } from "../lib/ai";
 
 export function Chat() {
   const {
@@ -11,6 +13,9 @@ export function Chat() {
     isTyping,
     setIsTyping,
     updateApp,
+    modelId,
+    apiKey,
+    setToast,
   } = useStore();
 
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -22,40 +27,42 @@ export function Chat() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [app.messages, isTyping]);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     const trimmed = input.trim();
     if (!trimmed) return;
+
+    if (!apiKey) {
+      setToast("Please set your API key first (click the key icon in the model selector)");
+      return;
+    }
+
+    const userMessage = { role: "user" as const, content: trimmed };
     updateApp(activeId, (a) => ({
-      messages: [...a.messages, { role: "user", content: trimmed }],
+      messages: [...a.messages, userMessage],
     }));
     setInput("");
     setIsTyping(true);
-    setTimeout(() => {
+
+    try {
       const currentApp = apps.find((a) => a.id === activeId);
-      const { reply, newDoc } = getAIResponse(
-        trimmed,
+      const currentMessages = [...(currentApp?.messages || []), userMessage];
+      const { reply, newDoc } = await sendMessage(
+        modelId,
+        apiKey,
+        currentMessages,
         currentApp?.doc || ""
       );
       updateApp(activeId, (a) => ({
         doc: newDoc,
-        messages: [
-          ...a.messages,
-          { role: "user" as const, content: trimmed },
-          { role: "assistant" as const, content: reply },
-        ].filter((m, i, arr) => {
-          if (m.role === "user" && m.content === trimmed && i > 0) {
-            const prevSame = arr
-              .slice(0, i)
-              .filter((x) => x.role === "user" && x.content === trimmed)
-              .length;
-            return prevSame === 0;
-          }
-          return true;
-        }),
+        messages: [...a.messages, { role: "assistant" as const, content: reply }],
       }));
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Something went wrong";
+      setToast(errorMsg);
+    } finally {
       setIsTyping(false);
-    }, 600 + Math.random() * 400);
-  }, [input, activeId, apps, updateApp, setInput, setIsTyping]);
+    }
+  }, [input, activeId, apps, updateApp, setInput, setIsTyping, modelId, apiKey, setToast]);
 
   return (
     <div
@@ -84,10 +91,12 @@ export function Chat() {
             fontSize: 11.5,
             color: "var(--text-muted)",
             letterSpacing: "0.04em",
+            flex: 1,
           }}
         >
           FORGE CHAT
         </span>
+        <ModelSelector />
       </div>
       <div style={{ flex: 1, overflow: "auto", padding: "16px" }}>
         <div
