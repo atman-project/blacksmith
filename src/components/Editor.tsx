@@ -1,15 +1,50 @@
-import { useMemo } from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Icons } from "./Icons";
 import { useStore } from "../lib/store";
-import { renderMarkdown } from "../lib/markdown";
 
 function RenderedMarkdown({ content }: { content: string }) {
-  const html = useMemo(() => renderMarkdown(content), [content]);
   return (
-    <div
-      className="rendered-md"
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <div className="rendered-md">
+      <Markdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          code({ className, children, ...props }) {
+            const match = /language-(\w+)/.exec(className || "");
+            const codeString = String(children).replace(/\n$/, "");
+            if (match) {
+              return (
+                <SyntaxHighlighter
+                  style={oneDark}
+                  language={match[1]}
+                  customStyle={{
+                    background: "var(--surface)",
+                    borderRadius: 6,
+                    margin: "12px 0",
+                    padding: "12px 16px",
+                    fontSize: "12.5px",
+                  }}
+                  codeTagProps={{
+                    style: { background: "transparent" },
+                  }}
+                >
+                  {codeString}
+                </SyntaxHighlighter>
+              );
+            }
+            return (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+        }}
+      >
+        {content}
+      </Markdown>
+    </div>
   );
 }
 
