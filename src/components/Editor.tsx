@@ -238,6 +238,19 @@ export function Editor() {
             onChange={(e) =>
               updateApp(activeId, () => ({ doc: e.target.value }))
             }
+            onKeyDown={(e) => {
+              if (e.key === "Tab") {
+                e.preventDefault();
+                const target = e.currentTarget;
+                const start = target.selectionStart;
+                const end = target.selectionEnd;
+                const newDoc = app.doc.substring(0, start) + "  " + app.doc.substring(end);
+                updateApp(activeId, () => ({ doc: newDoc }));
+                requestAnimationFrame(() => {
+                  target.selectionStart = target.selectionEnd = start + 2;
+                });
+              }
+            }}
             spellCheck={false}
           />
         ) : (
