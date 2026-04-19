@@ -239,7 +239,7 @@ export function Editor() {
               updateApp(activeId, () => ({ doc: e.target.value }))
             }
             onKeyDown={(e) => {
-              if (e.key === "Tab") {
+              if (e.key === "Tab" && !e.shiftKey) {
                 e.preventDefault();
                 const target = e.currentTarget;
                 const start = target.selectionStart;
@@ -249,6 +249,39 @@ export function Editor() {
                 requestAnimationFrame(() => {
                   target.selectionStart = target.selectionEnd = start + 2;
                 });
+              }
+              if (e.key === "Tab" && e.shiftKey) {
+                e.preventDefault();
+                const target = e.currentTarget;
+                const start = target.selectionStart;
+                const textBeforeCursor = app.doc.substring(0, start);
+                const currentLine = textBeforeCursor.split("\n").pop() || "";
+                const leadingSpaces = currentLine.match(/^(\s*)/)?.[1] || "";
+                if (leadingSpaces.length >= 2) {
+                  const lineStart = textBeforeCursor.lastIndexOf("\n") + 1;
+                  const newDoc = app.doc.substring(0, lineStart) + app.doc.substring(lineStart + 2);
+                  updateApp(activeId, () => ({ doc: newDoc }));
+                  requestAnimationFrame(() => {
+                    target.selectionStart = target.selectionEnd = start - 2;
+                  });
+                }
+              }
+              if (e.key === "Enter") {
+                const target = e.currentTarget;
+                const start = target.selectionStart;
+                const textBeforeCursor = app.doc.substring(0, start);
+                const currentLine = textBeforeCursor.split("\n").pop() || "";
+                const indent = currentLine.match(/^(\s*)/)?.[1] || "";
+                if (indent) {
+                  e.preventDefault();
+                  const end = target.selectionEnd;
+                  const insertion = "\n" + indent;
+                  const newDoc = app.doc.substring(0, start) + insertion + app.doc.substring(end);
+                  updateApp(activeId, () => ({ doc: newDoc }));
+                  requestAnimationFrame(() => {
+                    target.selectionStart = target.selectionEnd = start + insertion.length;
+                  });
+                }
               }
             }}
             spellCheck={false}
