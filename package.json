@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
@@ -19,6 +20,7 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.10.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
@@ -26,6 +28,8 @@
     "vite": "^6.2.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
