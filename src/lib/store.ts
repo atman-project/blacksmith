@@ -6,7 +6,7 @@ import {
   useRef,
 } from "react";
 import type { App, ViewMode, ModelId } from "../types";
-import { saveApps, savePreferences, loadAll, loadApiKey, saveApiKey } from "./persistence";
+import { storage } from "./storage";
 
 // --- Constants ---
 export const INITIAL_DOC = `# Welcome to Blacksmith
@@ -154,7 +154,7 @@ export function useAutoPersist(state: StoreState) {
     if (!state.loaded) return;
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      saveApps(state.apps);
+      storage.saveApps(state.apps);
     }, 300);
     return () => clearTimeout(debounceRef.current);
   }, [state.apps, state.loaded]);
@@ -165,7 +165,7 @@ export function useAutoPersist(state: StoreState) {
     if (!state.loaded) return;
     clearTimeout(prefsDebounceRef.current);
     prefsDebounceRef.current = setTimeout(() => {
-      savePreferences({
+      storage.savePreferences({
         activeId: state.activeId,
         sidebarOpen: state.sidebarOpen,
         viewMode: state.viewMode,
@@ -185,8 +185,8 @@ export async function loadInitialState(): Promise<{
   modelId: ModelId;
   apiKey: string;
 }> {
-  const storedApiKey = await loadApiKey();
-  const data = await loadAll();
+  const storedApiKey = await storage.loadApiKey();
+  const data = await storage.loadAll();
   if (data && data.apps.length > 0) {
     // Restore nextId so new apps don't collide
     const maxIdNum = data.apps.reduce((max, a) => {
@@ -215,4 +215,5 @@ export async function loadInitialState(): Promise<{
 }
 
 // Re-export for convenience
-export { useCallback, saveApiKey };
+export { useCallback };
+export const saveApiKey = (key: string) => storage.saveApiKey(key);
