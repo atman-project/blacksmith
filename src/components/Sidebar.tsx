@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Icons } from "./Icons";
 import { useStore, extractTitle, createNewApp } from "../lib/store";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 export function Sidebar() {
   const {
@@ -19,6 +21,8 @@ export function Sidebar() {
     setInput("");
   };
 
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
   const handleDeleteApp = (id: string) => {
     if (apps.length <= 1) return;
     setApps((prev) => prev.filter((a) => a.id !== id));
@@ -26,9 +30,15 @@ export function Sidebar() {
       setActiveId(apps.find((a) => a.id !== id)?.id || apps[0].id);
   };
 
+  const confirmDelete = () => {
+    if (pendingDeleteId) handleDeleteApp(pendingDeleteId);
+    setPendingDeleteId(null);
+  };
+
   const SIDEBAR_W = sidebarOpen ? 220 : 48;
 
   return (
+    <>
     <div
       style={{
         width: SIDEBAR_W,
@@ -176,6 +186,7 @@ export function Sidebar() {
                   <Icons.Dot />
                 </span>
               )}
+<<<<<<< Updated upstream
               {apps.length > 1 && (
                 <button
                   data-delete=""
@@ -209,6 +220,39 @@ export function Sidebar() {
                   <Icons.Trash />
                 </button>
               )}
+=======
+              <button
+                data-delete=""
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPendingDeleteId(a.id);
+                }}
+                style={{
+                  opacity: 0,
+                  position: "absolute",
+                  right: 8,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  color: "var(--text-muted)",
+                  cursor: "pointer",
+                  padding: 4,
+                  borderRadius: 3,
+                  display: "flex",
+                  alignItems: "center",
+                  transition: "opacity 0.1s, color 0.1s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "#e25a5a")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "var(--text-muted)")
+                }
+              >
+                <Icons.Trash />
+              </button>
+>>>>>>> Stashed changes
             </div>
           );
         })}
@@ -217,6 +261,17 @@ export function Sidebar() {
       {/* New app button */}
       <NewAppButton />
     </div>
+    {pendingDeleteId !== null && (
+      <ConfirmDialog
+        title="DELETE APP"
+        message="This app and all its history will be permanently deleted. This can't be undone."
+        confirmLabel="DELETE"
+        danger
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDeleteId(null)}
+      />
+    )}
+    </>
   );
 }
 
