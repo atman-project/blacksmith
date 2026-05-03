@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import { createContext, useContext, useEffect, useRef } from "react";
 import type { App, ViewMode, ModelId } from "../types";
 import { storage } from "./storage";
 
@@ -63,49 +57,8 @@ export function extractTitle(doc: string): string {
   return match ? match[1].replace(/\*\*/g, "") : "Untitled";
 }
 
-// --- Simulated AI ---
-export function getAIResponse(
-  userMsg: string,
-  currentDoc: string
-): { reply: string; newDoc: string } {
-  const msg = userMsg.toLowerCase();
-  let newDoc = currentDoc,
-    reply = "";
-  if (msg.includes("add") && msg.includes("section")) {
-    const t =
-      userMsg
-        .replace(/add\s*(a\s*)?section\s*(about|on|for|called|titled)?\s*/i, "")
-        .trim() || "New Section";
-    const cap = t.charAt(0).toUpperCase() + t.slice(1);
-    newDoc =
-      currentDoc +
-      `\n\n## ${cap}\n\nThis section covers ${cap.toLowerCase()}. Start writing here...\n`;
-    reply = `Added a new section: **${cap}**.`;
-  } else if (msg.includes("add") && msg.includes("todo")) {
-    newDoc =
-      currentDoc +
-      `\n\n## TODO\n\n- [ ] First task\n- [ ] Second task\n- [ ] Third task\n`;
-    reply = "Added a TODO section with placeholder tasks.";
-  } else if (msg.includes("summarize") || msg.includes("summary")) {
-    reply =
-      "Your document covers the current sections with their content. It's structured and ready for further shaping.";
-  } else if (msg.includes("clear") || msg.includes("reset")) {
-    newDoc = "# Untitled\n\nStart writing...\n";
-    reply = "Document cleared. A fresh canvas awaits.";
-  } else if (msg.includes("title") || msg.includes("rename")) {
-    const title =
-      userMsg.replace(/.*(?:title|rename)\s*(?:to|it|this)?\s*/i, "").trim() ||
-      "Untitled";
-    newDoc = currentDoc.replace(/^#\s+.+/m, `# ${title}`);
-    reply = `Updated the title to **${title}**.`;
-  } else {
-    reply = `I understand you want to: "${userMsg}". Try:\n\n- "Add a section about [topic]"\n- "Add a todo list"\n- "Rename to [new title]"\n- "Clear the document"`;
-  }
-  return { reply, newDoc };
-}
-
 // --- Store context ---
-export interface StoreState {
+interface StoreState {
   apps: App[];
   activeId: string;
   sidebarOpen: boolean;
@@ -120,7 +73,7 @@ export interface StoreState {
   loaded: boolean;
 }
 
-export interface StoreActions {
+interface StoreActions {
   setApps: React.Dispatch<React.SetStateAction<App[]>>;
   setActiveId: React.Dispatch<React.SetStateAction<string>>;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -216,7 +169,5 @@ export async function loadInitialState(): Promise<{
   };
 }
 
-// Re-export for convenience
-export { useCallback };
 export const saveApiKey = (modelId: ModelId, key: string) =>
   storage.saveApiKey(modelId, key);

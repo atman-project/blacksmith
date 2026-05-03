@@ -22,7 +22,7 @@ export type ViewMode = "markdown" | "rendered";
 
 export type ModelId = "claude-sonnet" | "llama-3.2-8b";
 
-export interface ModelOption {
+interface ModelOption {
   id: ModelId;
   label: string;
   category: "cloud" | "local";
@@ -49,7 +49,7 @@ export interface DiffLine {
   pair?: DiffLine;
 }
 
-export interface Hunk {
+interface Hunk {
   lines: DiffLine[];
 }
 
@@ -59,7 +59,7 @@ export interface DiffResult {
   deletions: number;
 }
 
-export interface InlineSegment {
+interface InlineSegment {
   text: string;
   highlight: boolean;
 }
