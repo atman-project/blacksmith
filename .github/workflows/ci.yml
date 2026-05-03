@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  web:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,5 +27,54 @@ jobs:
       - name: Type check
         run: pnpm exec tsc -b
 
+      - name: Test
+        run: pnpm test
+
       - name: Build
         run: pnpm exec vite build
+
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libxdo-dev
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Cargo test
+        working-directory: src-tauri
+        run: cargo test
+
+      - name: Build Tauri app
+        run: pnpm tauri build --no-bundle
