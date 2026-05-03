@@ -10,7 +10,8 @@
     "test": "vitest run",
     "tauri": "tauri",
     "build:wasm": "cd crates/echo-node && cargo build --target=wasm32-unknown-unknown && wasm-bindgen ./target/wasm32-unknown-unknown/debug/echo_node.wasm --out-dir=../../src/wasm --weak-refs --target=web --debug",
-    "build:wasm:release": "cd crates/echo-node && cargo build --target=wasm32-unknown-unknown --release && wasm-bindgen ./target/wasm32-unknown-unknown/release/echo_node.wasm --out-dir=../../src/wasm --weak-refs --target=web && wasm-opt --enable-nontrapping-float-to-int --enable-bulk-memory -Os -o ../../src/wasm/echo_node_bg.wasm ../../src/wasm/echo_node_bg.wasm"
+    "build:wasm:release": "cd crates/echo-node && cargo build --target=wasm32-unknown-unknown --release && wasm-bindgen ./target/wasm32-unknown-unknown/release/echo_node.wasm --out-dir=../../src/wasm --weak-refs --target=web && wasm-opt --enable-nontrapping-float-to-int --enable-bulk-memory -Os -o ../../src/wasm/echo_node_bg.wasm ../../src/wasm/echo_node_bg.wasm",
+    "deploy:vercel": "pnpm build:wasm:release && vercel --prod"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
