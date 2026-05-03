@@ -4,7 +4,7 @@
 
 Blacksmith turns your notes into mini apps. Jot down your thoughts like you would on paper. Chat with Blacksmith to shape them. Before you know it, your notes come alive — and they keep evolving as your needs change. Stop waiting for someone else to build apps that never quite fit.
 
-Blacksmith is part of the [Atman Project](https://github.com/atman-project).
+Blacksmith is part of the [Atman Project](https://atman.sh).
 
 ## Philosophy
 
