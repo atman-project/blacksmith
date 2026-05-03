@@ -1,7 +1,11 @@
 import { isDesktop } from "./platform";
+import { initWeb } from "@echo-web";
 
 // Cross-target echo node adapter.
 // Web → WASM (iroh, relay-mediated). Desktop → Tauri invoke (native iroh).
+// `@echo-web` resolves to the real wasm-loading module on web builds and to a
+// throwing stub on desktop builds (see vite.config.ts). The stub keeps the
+// wasm chunk out of the Tauri bundle.
 
 export type EchoEvent =
   | { type: "accepted"; endpointId: string }
@@ -44,54 +48,6 @@ export function getEcho(): EchoAdapter | null {
   return adapter;
 }
 
-// --- Web (WASM) ---
-
-async function initWeb(): Promise<EchoAdapter> {
-  const mod = await import("../wasm/echo_node.js");
-  await mod.default();
-  const node = await mod.EchoNode.spawn();
-
-  const acceptListeners = new Set<(e: EchoEvent) => void>();
-  const connectListeners = new Set<(e: EchoEvent) => void>();
-
-  (async () => {
-    const stream: ReadableStream = node.events();
-    const reader = stream.getReader();
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const ev = value as EchoEvent;
-      console.log("[echo]", ev.type, ev);
-      acceptListeners.forEach((cb) => cb(ev));
-    }
-  })();
-
-  return {
-    endpointId: () => node.endpoint_id(),
-    async connect(peer, payload) {
-      const stream: ReadableStream = node.connect(peer, payload);
-      const reader = stream.getReader();
-      (async () => {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          const ev = value as EchoEvent;
-          console.log("[echo]", ev.type, ev);
-          connectListeners.forEach((cb) => cb(ev));
-        }
-      })();
-    },
-    onAccept(cb) {
-      acceptListeners.add(cb);
-      return () => acceptListeners.delete(cb);
-    },
-    onConnect(cb) {
-      connectListeners.add(cb);
-      return () => connectListeners.delete(cb);
-    },
-  };
-}
-
 // --- Desktop (Tauri) ---
 
 async function initDesktop(): Promise<EchoAdapter> {
@@ -104,11 +60,11 @@ async function initDesktop(): Promise<EchoAdapter> {
   const connectListeners = new Set<(e: EchoEvent) => void>();
 
   await listen<EchoEvent>("echo-accept", (e) => {
-    console.log("[echo]", e.payload.type, e.payload);
+    console.log("[echo] accept:", e.payload);
     acceptListeners.forEach((cb) => cb(e.payload));
   });
   await listen<EchoEvent>("echo-connect", (e) => {
-    console.log("[echo]", e.payload.type, e.payload);
+    console.log("[echo] connect:", e.payload);
     connectListeners.forEach((cb) => cb(e.payload));
   });
 
