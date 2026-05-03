@@ -20,10 +20,15 @@ export function Sidebar() {
   };
 
   const handleDeleteApp = (id: string) => {
-    if (apps.length <= 1) return;
-    setApps((prev) => prev.filter((a) => a.id !== id));
-    if (activeId === id)
-      setActiveId(apps.find((a) => a.id !== id)?.id || apps[0].id);
+    const remaining = apps.filter((a) => a.id !== id);
+    if (remaining.length === 0) {
+      const fresh = createNewApp();
+      setApps([fresh]);
+      setActiveId(fresh.id);
+      return;
+    }
+    setApps(remaining);
+    if (activeId === id) setActiveId(remaining[0].id);
   };
 
   const SIDEBAR_W = sidebarOpen ? 220 : 48;
@@ -176,39 +181,37 @@ export function Sidebar() {
                   <Icons.Dot />
                 </span>
               )}
-              {apps.length > 1 && (
-                <button
-                  data-delete=""
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteApp(a.id);
-                  }}
-                  style={{
-                    opacity: 0,
-                    position: "absolute",
-                    right: 8,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    color: "var(--text-muted)",
-                    cursor: "pointer",
-                    padding: 4,
-                    borderRadius: 3,
-                    display: "flex",
-                    alignItems: "center",
-                    transition: "opacity 0.1s, color 0.1s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "#e25a5a")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "var(--text-muted)")
-                  }
-                >
-                  <Icons.Trash />
-                </button>
-              )}
+              <button
+                data-delete=""
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteApp(a.id);
+                }}
+                style={{
+                  opacity: 0,
+                  position: "absolute",
+                  right: 8,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  color: "var(--text-muted)",
+                  cursor: "pointer",
+                  padding: 4,
+                  borderRadius: 3,
+                  display: "flex",
+                  alignItems: "center",
+                  transition: "opacity 0.1s, color 0.1s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "#e25a5a")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "var(--text-muted)")
+                }
+              >
+                <Icons.Trash />
+              </button>
             </div>
           );
         })}
