@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Icons } from "./Icons";
-import { computeDiff, computeInlineDiff } from "../lib/diff";
+import { computeDiff, isAdd, isDel, parsePatch } from "../lib/diff";
 
 interface DiffViewProps {
   oldDoc: string;
@@ -12,6 +12,13 @@ interface DiffViewProps {
   onRestore?: (() => void) | null;
 }
 
+const ADD_FG = "#4ae28a";
+const DEL_FG = "#e25a5a";
+const ADD_BG = "rgba(74,226,138,0.08)";
+const DEL_BG = "rgba(226,90,90,0.08)";
+const ADD_HL = "rgba(74,226,138,0.3)";
+const DEL_HL = "rgba(226,90,90,0.3)";
+
 export function DiffView({
   oldDoc,
   newDoc,
@@ -22,6 +29,7 @@ export function DiffView({
   onRestore,
 }: DiffViewProps) {
   const diff = useMemo(() => computeDiff(oldDoc, newDoc), [oldDoc, newDoc]);
+  const lines = useMemo(() => parsePatch(diff.patch), [diff.patch]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -112,38 +120,34 @@ export function DiffView({
           fontFamily: "var(--font-mono)",
         }}
       >
-        <span style={{ color: "#4ae28a" }}>+{diff.additions}</span>
-        <span style={{ color: "#e25a5a" }}>-{diff.deletions}</span>
+        <span style={{ color: ADD_FG }}>+{diff.additions}</span>
+        <span style={{ color: DEL_FG }}>-{diff.deletions}</span>
         {diff.additions + diff.deletions > 0 && (
           <div style={{ display: "flex", gap: 1, alignItems: "center" }}>
-            {Array.from({ length: Math.min(diff.additions, 20) }).map(
-              (_, i) => (
-                <div
-                  key={`a${i}`}
-                  style={{
-                    width: 5,
-                    height: 5,
-                    background: "#4ae28a",
-                    borderRadius: 1,
-                    opacity: 0.7,
-                  }}
-                />
-              )
-            )}
-            {Array.from({ length: Math.min(diff.deletions, 20) }).map(
-              (_, i) => (
-                <div
-                  key={`d${i}`}
-                  style={{
-                    width: 5,
-                    height: 5,
-                    background: "#e25a5a",
-                    borderRadius: 1,
-                    opacity: 0.7,
-                  }}
-                />
-              )
-            )}
+            {Array.from({ length: Math.min(diff.additions, 20) }).map((_, i) => (
+              <div
+                key={`a${i}`}
+                style={{
+                  width: 5,
+                  height: 5,
+                  background: ADD_FG,
+                  borderRadius: 1,
+                  opacity: 0.7,
+                }}
+              />
+            ))}
+            {Array.from({ length: Math.min(diff.deletions, 20) }).map((_, i) => (
+              <div
+                key={`d${i}`}
+                style={{
+                  width: 5,
+                  height: 5,
+                  background: DEL_FG,
+                  borderRadius: 1,
+                  opacity: 0.7,
+                }}
+              />
+            ))}
           </div>
         )}
         <div style={{ flex: 1 }} />
@@ -168,7 +172,7 @@ export function DiffView({
       </div>
 
       <div style={{ flex: 1, overflow: "auto", padding: "4px 0" }}>
-        {diff.hunks.length === 0 ? (
+        {lines.length === 0 ? (
           <div
             style={{
               padding: "40px 20px",
@@ -181,144 +185,64 @@ export function DiffView({
             No changes
           </div>
         ) : (
-          diff.hunks.map((hunk, hi) => (
-            <div key={hi}>
-              {hi > 0 && (
-                <div
-                  style={{
-                    padding: "6px 0",
-                    fontSize: 10,
-                    color: "var(--text-muted)",
-                    fontFamily: "var(--font-mono)",
-                    textAlign: "center",
-                    background: "var(--surface)",
-                    borderTop: "1px solid var(--border-subtle)",
-                    borderBottom: "1px solid var(--border-subtle)",
-                    letterSpacing: "0.3em",
-                  }}
-                >
-                  ...
-                </div>
-              )}
-              {hunk.lines.map((line, li) => {
-                const isAdd = line.type === "add";
-                const isDel = line.type === "del";
-                return (
-                  <div
-                    key={`${hi}-${li}`}
-                    style={{
-                      display: "flex",
-                      fontSize: 12,
-                      lineHeight: "22px",
-                      fontFamily: "var(--font-mono)",
-                      background: isAdd
-                        ? "rgba(74,226,138,0.06)"
-                        : isDel
-                          ? "rgba(226,90,90,0.06)"
-                          : "transparent",
-                      borderLeft: `3px solid ${isAdd ? "rgba(74,226,138,0.5)" : isDel ? "rgba(226,90,90,0.5)" : "transparent"}`,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 36,
-                        flexShrink: 0,
-                        textAlign: "right",
-                        paddingRight: 4,
-                        color: isDel
-                          ? "rgba(226,90,90,0.4)"
-                          : isAdd
-                            ? "transparent"
-                            : "var(--border)",
-                        userSelect: "none",
-                        fontSize: 10.5,
-                      }}
-                    >
-                      {!isAdd ? line.oldNum || "" : ""}
-                    </div>
-                    <div
-                      style={{
-                        width: 36,
-                        flexShrink: 0,
-                        textAlign: "right",
-                        paddingRight: 8,
-                        color: isAdd
-                          ? "rgba(74,226,138,0.4)"
-                          : isDel
-                            ? "transparent"
-                            : "var(--border)",
-                        userSelect: "none",
-                        fontSize: 10.5,
-                      }}
-                    >
-                      {!isDel ? line.newNum || "" : ""}
-                    </div>
-                    <div
-                      style={{
-                        width: 16,
-                        flexShrink: 0,
-                        textAlign: "center",
-                        color: isAdd
-                          ? "#4ae28a"
-                          : isDel
-                            ? "#e25a5a"
-                            : "transparent",
-                        fontWeight: 700,
-                        userSelect: "none",
-                      }}
-                    >
-                      {isAdd ? "+" : isDel ? "\u2212" : " "}
-                    </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        paddingRight: 12,
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        color: isAdd
-                          ? "#4ae28a"
-                          : isDel
-                            ? "#e25a5a"
-                            : "var(--text-secondary)",
-                        opacity: isAdd || isDel ? 1 : 0.6,
-                      }}
-                    >
-                      {(() => {
-                        if (!line.pair || !line.content)
-                          return line.content || "\u00A0";
-                        const inline = computeInlineDiff(
-                          isDel ? line.content : line.pair.content,
-                          isAdd ? line.content : line.pair.content
-                        );
-                        const segments = isDel
-                          ? inline.oldSegments
-                          : inline.newSegments;
-                        const hlColor = isAdd
-                          ? "rgba(74,226,138,0.25)"
-                          : "rgba(226,90,90,0.25)";
-                        return segments.map((seg, si) =>
-                          seg.highlight ? (
-                            <span
-                              key={si}
-                              style={{
-                                background: hlColor,
-                                borderRadius: 2,
-                                padding: "1px 0",
-                              }}
-                            >
-                              {seg.text}
-                            </span>
-                          ) : (
-                            <span key={si}>{seg.text}</span>
-                          )
-                        );
-                      })()}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ))
+          lines.map(({ raw, segments }, i) => {
+            const c = raw[0];
+            const add = isAdd(raw);
+            const del = isDel(raw);
+            const color = add
+              ? ADD_FG
+              : del
+                ? DEL_FG
+                : c === "@"
+                  ? "var(--accent)"
+                  : raw.startsWith("---") ||
+                      raw.startsWith("+++") ||
+                      raw.startsWith("Index:") ||
+                      raw.startsWith("===")
+                    ? "var(--text-muted)"
+                    : "var(--text-secondary)";
+            const background = add ? ADD_BG : del ? DEL_BG : "transparent";
+            const hl = add ? ADD_HL : DEL_HL;
+            return (
+              <div
+                key={i}
+                style={{
+                  fontSize: 12,
+                  lineHeight: "20px",
+                  fontFamily: "var(--font-mono)",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  padding: "0 16px",
+                  color,
+                  background,
+                }}
+              >
+                {segments
+                  ? [
+                      <span key="p" style={{ fontWeight: 700 }}>
+                        {c}
+                      </span>,
+                      ...segments.map((seg, si) =>
+                        seg.changed ? (
+                          <span
+                            key={si}
+                            style={{
+                              background: hl,
+                              borderRadius: 2,
+                              padding: "1px 0",
+                            }}
+                          >
+                            {seg.text}
+                          </span>
+                        ) : (
+                          <span key={si}>{seg.text}</span>
+                        )
+                      ),
+                    ]
+                  : raw || "\u00A0"}
+              </div>
+            );
+          })
         )}
       </div>
     </div>

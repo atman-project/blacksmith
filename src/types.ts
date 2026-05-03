@@ -41,30 +41,3 @@ export interface UIPreferences {
   modelId: ModelId;
 }
 
-export interface DiffLine {
-  type: "ctx" | "add" | "del";
-  content: string;
-  oldNum?: number;
-  newNum?: number;
-  pair?: DiffLine;
-}
-
-export interface Hunk {
-  lines: DiffLine[];
-}
-
-export interface DiffResult {
-  hunks: Hunk[];
-  additions: number;
-  deletions: number;
-}
-
-export interface InlineSegment {
-  text: string;
-  highlight: boolean;
-}
-
-export interface InlineDiffResult {
-  oldSegments: InlineSegment[];
-  newSegments: InlineSegment[];
-}
