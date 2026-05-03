@@ -1,3 +1,12 @@
 {
-   "signedContributors": []
+  "signedContributors": [
+    {
+      "name": "youngjoon-lee",
+      "id": 5462944,
+      "comment_id": 4365062228,
+      "created_at": "2026-05-03T00:47:59Z",
+      "repoId": 1201969988,
+      "pullRequestNo": 2
+    }
+  ]
 }
