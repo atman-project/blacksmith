@@ -25,3 +25,6 @@ tauri = { version = "2.11", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-fs = "2"
 keyring = { version = "3", features = ["apple-native", "windows-native", "linux-native"] }
+echo-node = { path = "../crates/echo-node", features = ["native"] }
+n0-future = "0.3"
+anyhow = "1"

@@ -23,7 +23,29 @@ pnpm install
 
 ### Web
 
+The web build uses an in-browser [iroh](https://www.iroh.computer) node compiled to WebAssembly. Build it once, then start the dev server.
+
+Requires the [Rust toolchain](https://www.rust-lang.org/tools/install), the `wasm32-unknown-unknown` target, and [`wasm-bindgen-cli`](https://github.com/rustwasm/wasm-bindgen):
+
 ```bash
+rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli
+```
+
+**macOS only:** the `ring` crate (a transitive dependency of `iroh`) needs a `clang` with the wasm32 backend, which Apple's bundled clang lacks. Install Homebrew LLVM and point Cargo at it:
+
+```bash
+brew install llvm
+export CC_wasm32_unknown_unknown="$(brew --prefix llvm)/bin/clang"
+export AR_wasm32_unknown_unknown="$(brew --prefix llvm)/bin/llvm-ar"
+```
+
+Add those exports to your shell profile if you want them to persist.
+
+Build the WASM module and run the dev server:
+
+```bash
+pnpm build:wasm
 pnpm dev
 ```
 

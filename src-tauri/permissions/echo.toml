@@ -1,0 +1,6 @@
+"$schema" = "schemas/schema.json"
+
+[[permission]]
+identifier = "allow-echo"
+description = "Allow reading the local iroh endpoint id and dialing peers."
+commands.allow = ["echo_endpoint_id", "echo_connect"]

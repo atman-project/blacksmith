@@ -22,7 +22,21 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: crates/echo-node
+
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli --version 0.2.120
+
       - run: pnpm install --frozen-lockfile
+
+      - name: Build WASM (echo-node)
+        run: pnpm build:wasm
 
       - name: Type check
         run: pnpm exec tsc -b
@@ -57,7 +71,9 @@ jobs:
 
       - uses: swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri
+          workspaces: |
+            src-tauri
+            crates/echo-node
 
       - name: Install Linux dependencies
         if: matrix.os == 'ubuntu-latest'
@@ -72,9 +88,13 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Cargo test
+      - name: Cargo test (src-tauri)
         working-directory: src-tauri
         run: cargo test
+
+      - name: Cargo test (echo-node)
+        working-directory: crates/echo-node
+        run: cargo test --features native
 
       - name: Build Tauri app
         run: pnpm tauri build --no-bundle

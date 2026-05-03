@@ -1,3 +1,4 @@
+mod echo;
 mod keychain;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -8,6 +9,8 @@ pub fn run() {
             keychain::get_api_key,
             keychain::set_api_key,
             keychain::delete_api_key,
+            echo::echo_endpoint_id,
+            echo::echo_connect,
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {
@@ -17,6 +20,7 @@ pub fn run() {
                         .build(),
                 )?;
             }
+            echo::init(app)?;
             Ok(())
         })
         .run(tauri::generate_context!())

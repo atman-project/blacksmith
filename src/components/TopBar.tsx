@@ -1,5 +1,6 @@
 import { Icons } from "./Icons";
 import { useStore } from "../lib/store";
+import { SyncMenu } from "./SyncMenu";
 
 export function TopBar() {
   const {
@@ -124,6 +125,15 @@ export function TopBar() {
             </span>
           )}
         </button>
+        <div
+          style={{
+            width: 1,
+            height: 20,
+            background: "var(--border)",
+            margin: "0 4px",
+          }}
+        />
+        <SyncMenu />
         <div
           style={{
             width: 1,

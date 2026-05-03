@@ -10,6 +10,7 @@ import {
   saveApiKey,
 } from "./lib/store";
 import { resetClient } from "./lib/ai";
+import { initEcho } from "./lib/echo";
 import { Sidebar } from "./components/Sidebar";
 import { Chat } from "./components/Chat";
 import { Editor } from "./components/Editor";
@@ -56,6 +57,7 @@ export default function App() {
       setApiKeysState(data.apiKeys);
       setLoaded(true);
     });
+    initEcho().catch((err) => console.error("[echo] init failed:", err));
   }, []);
 
   const updateApp = useCallback(
