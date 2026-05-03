@@ -17,9 +17,13 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
+    // Vite swaps `@echo-web` between the real WASM module and a desktop stub at
+    // build time (see vite.config.ts). tsc only needs one target to type-check
+    // against — both files share the same `initWeb` signature, so pointing at
+    // the real one covers both builds.
     "paths": {
-      "@echo-web": ["./src/lib/echo-web"]
-    }
+      "@echo-web": ["./src/lib/echo-web.ts"],
+    },
   },
-  "include": ["src"]
+  "include": ["src"],
 }
