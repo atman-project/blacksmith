@@ -3,3 +3,4 @@ dist
 .vercel
 CLAUDE.md
 src/wasm
+tsconfig.tsbuildinfo
