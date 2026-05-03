@@ -166,7 +166,7 @@ export function DiffView({
               letterSpacing: "0.02em",
             }}
           >
-            RESTORE
+            LOAD
           </button>
         )}
       </div>

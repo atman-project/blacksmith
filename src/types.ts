@@ -16,6 +16,7 @@ export interface App {
   lastCommittedDoc: string;
   messages: Message[];
   commits: Commit[];
+  head?: string;
 }
 
 export type ViewMode = "markdown" | "rendered";

@@ -6,6 +6,7 @@ import type { Commit } from "../types";
 
 interface HistoryPanelProps {
   commits: Commit[];
+  head?: string;
   onRestore: (commit: Commit) => void;
   onClose: () => void;
   initialDoc: string;
@@ -13,6 +14,7 @@ interface HistoryPanelProps {
 
 export function HistoryPanel({
   commits,
+  head,
   onRestore,
   onClose,
   initialDoc,
@@ -20,6 +22,11 @@ export function HistoryPanel({
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const getPrevDoc = (idx: number) =>
     idx === commits.length - 1 ? initialDoc : commits[idx + 1].doc;
+  const headIdx = head
+    ? commits.findIndex((c) => c.hash === head)
+    : commits.length > 0
+      ? 0
+      : -1;
 
   if (selectedIdx !== null) {
     const c = commits[selectedIdx];
@@ -47,7 +54,7 @@ export function HistoryPanel({
           commitHash={c.hash}
           onBack={() => setSelectedIdx(null)}
           onRestore={
-            selectedIdx > 0
+            selectedIdx !== headIdx
               ? () => {
                   onRestore(c);
                   setSelectedIdx(null);
@@ -149,10 +156,10 @@ export function HistoryPanel({
                         flexShrink: 0,
                         marginTop: 8,
                         background:
-                          i === 0 ? "var(--accent)" : "var(--text-muted)",
-                        opacity: i === 0 ? 1 : 0.4,
+                          i === headIdx ? "var(--accent)" : "var(--text-muted)",
+                        opacity: i === headIdx ? 1 : 0.4,
                         border:
-                          i === 0
+                          i === headIdx
                             ? "2px solid var(--accent-dim)"
                             : "2px solid transparent",
                         boxSizing: "border-box",
@@ -229,6 +236,21 @@ export function HistoryPanel({
                       >
                         {c.hash}
                       </span>
+                      {i === headIdx && (
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontFamily: "var(--font-mono)",
+                            color: "var(--accent)",
+                            border: "1px solid var(--accent-dim)",
+                            padding: "0 4px",
+                            borderRadius: 2,
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          HEAD
+                        </span>
+                      )}
                       <span
                         style={{
                           fontSize: 10,
@@ -250,7 +272,7 @@ export function HistoryPanel({
                         -{stats.deletions}
                       </span>
                     </div>
-                    {i > 0 && (
+                    {i !== headIdx && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -269,7 +291,7 @@ export function HistoryPanel({
                           letterSpacing: "0.02em",
                         }}
                       >
-                        RESTORE
+                        LOAD
                       </button>
                     )}
                   </div>
