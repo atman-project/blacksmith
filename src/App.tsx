@@ -77,29 +77,24 @@ export default function App() {
       hour: "2-digit",
       minute: "2-digit",
     });
+    const hash = Math.random().toString(36).slice(2, 9);
     updateApp(activeId, (a) => ({
-      commits: [
-        {
-          message,
-          doc: a.doc,
-          time,
-          hash: Math.random().toString(36).slice(2, 9),
-        },
-        ...a.commits,
-      ],
+      commits: [{ message, doc: a.doc, time, hash }, ...a.commits],
       lastCommittedDoc: a.doc,
+      head: hash,
     }));
     setShowCommitDialog(false);
     setToast(`Committed: ${message}`);
   };
 
-  const handleRestore = (commit: { doc: string; message: string }) => {
+  const handleRestore = (commit: { doc: string; message: string; hash: string }) => {
     updateApp(activeId, () => ({
       doc: commit.doc,
       lastCommittedDoc: commit.doc,
+      head: commit.hash,
     }));
     setShowHistory(false);
-    setToast(`Restored: ${commit.message}`);
+    setToast(`Loaded: ${commit.message}`);
   };
 
   const storeValue = {
@@ -180,6 +175,7 @@ export default function App() {
             {showHistory && (
               <HistoryPanel
                 commits={app.commits}
+                head={app.head}
                 onRestore={handleRestore}
                 onClose={() => setShowHistory(false)}
                 initialDoc={
