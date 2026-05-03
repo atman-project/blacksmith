@@ -1,10 +1,16 @@
 use keyring::{Entry, Error};
+use std::sync::OnceLock;
 
-const SERVICE: &str = "ink.blacksmith.app";
+static SERVICE: OnceLock<String> = OnceLock::new();
+
+pub fn init(app: &tauri::App) {
+    SERVICE.set(app.config().identifier.clone()).ok();
+}
 
 fn entry(key_id: &str) -> Result<Entry, String> {
+    let service = SERVICE.get().ok_or("keychain not initialized")?;
     let account = format!("api-key-{}", key_id);
-    Entry::new(SERVICE, &account).map_err(|e| e.to_string())
+    Entry::new(service, &account).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

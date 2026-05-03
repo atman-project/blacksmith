@@ -21,6 +21,7 @@ pub fn run() {
                 )?;
             }
             echo::init(app)?;
+            keychain::init(app);
             Ok(())
         })
         .run(tauri::generate_context!())
