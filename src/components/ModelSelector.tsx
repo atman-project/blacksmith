@@ -4,7 +4,8 @@ import { MODEL_OPTIONS } from "../types";
 import type { ModelId } from "../types";
 
 export function ModelSelector() {
-  const { modelId, setModelId, setToast, apiKey, setApiKey } = useStore();
+  const { modelId, setModelId, setToast, apiKeys, setApiKey } = useStore();
+  const apiKey = apiKeys[modelId] ?? "";
   const [open, setOpen] = useState(false);
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [keyDraft, setKeyDraft] = useState("");
@@ -218,7 +219,7 @@ export function ModelSelector() {
                   onChange={(e) => setKeyDraft(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && keyDraft.trim()) {
-                      setApiKey(keyDraft.trim());
+                      setApiKey(modelId, keyDraft.trim());
                       setShowKeyInput(false);
                       setOpen(false);
                       setToast("API key saved");
@@ -258,7 +259,7 @@ export function ModelSelector() {
                   <button
                     onClick={() => {
                       if (keyDraft.trim()) {
-                        setApiKey(keyDraft.trim());
+                        setApiKey(modelId, keyDraft.trim());
                         setShowKeyInput(false);
                         setOpen(false);
                         setToast("API key saved");

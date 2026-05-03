@@ -29,12 +29,19 @@ export default function App() {
   const [isTyping, setIsTyping] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("rendered");
   const [modelId, setModelId] = useState<ModelId>("claude-sonnet");
-  const [apiKey, setApiKeyState] = useState("");
+  const [apiKeys, setApiKeysState] = useState<Partial<Record<ModelId, string>>>(
+    {},
+  );
   const [loaded, setLoaded] = useState(false);
 
-  const setApiKey = useCallback((key: string) => {
-    setApiKeyState(key);
-    saveApiKey(key);
+  const setApiKey = useCallback((modelId: ModelId, key: string) => {
+    setApiKeysState((prev) => {
+      const next = { ...prev };
+      if (key) next[modelId] = key;
+      else delete next[modelId];
+      return next;
+    });
+    saveApiKey(modelId, key);
     resetClient();
   }, []);
 
@@ -46,7 +53,7 @@ export default function App() {
       setSidebarOpen(data.sidebarOpen);
       setViewMode(data.viewMode);
       setModelId(data.modelId);
-      setApiKeyState(data.apiKey);
+      setApiKeysState(data.apiKeys);
       setLoaded(true);
     });
   }, []);
@@ -101,7 +108,7 @@ export default function App() {
     sidebarOpen,
     viewMode,
     modelId,
-    apiKey,
+    apiKeys,
     showHistory,
     showCommitDialog,
     toast,

@@ -116,7 +116,7 @@ export interface StoreState {
   toast: string | null;
   isTyping: boolean;
   input: string;
-  apiKey: string;
+  apiKeys: Partial<Record<ModelId, string>>;
   loaded: boolean;
 }
 
@@ -131,7 +131,7 @@ export interface StoreActions {
   setToast: React.Dispatch<React.SetStateAction<string | null>>;
   setIsTyping: React.Dispatch<React.SetStateAction<boolean>>;
   setInput: React.Dispatch<React.SetStateAction<string>>;
-  setApiKey: (key: string) => void;
+  setApiKey: (modelId: ModelId, key: string) => void;
   updateApp: (id: string, updater: (a: App) => Partial<App>) => void;
 }
 
@@ -183,9 +183,11 @@ export async function loadInitialState(): Promise<{
   sidebarOpen: boolean;
   viewMode: ViewMode;
   modelId: ModelId;
-  apiKey: string;
+  apiKeys: Partial<Record<ModelId, string>>;
 }> {
-  const storedApiKey = await storage.loadApiKey();
+  const storedApiKeys = (await storage.loadApiKeys()) as Partial<
+    Record<ModelId, string>
+  >;
   const data = await storage.loadAll();
   if (data && data.apps.length > 0) {
     // Restore nextId so new apps don't collide
@@ -201,7 +203,7 @@ export async function loadInitialState(): Promise<{
       sidebarOpen: data.preferences?.sidebarOpen ?? true,
       viewMode: data.preferences?.viewMode ?? "rendered",
       modelId: data.preferences?.modelId ?? "claude-sonnet",
-      apiKey: storedApiKey ?? "",
+      apiKeys: storedApiKeys,
     };
   }
   return {
@@ -210,10 +212,11 @@ export async function loadInitialState(): Promise<{
     sidebarOpen: true,
     viewMode: "rendered",
     modelId: "claude-sonnet",
-    apiKey: storedApiKey ?? "",
+    apiKeys: storedApiKeys,
   };
 }
 
 // Re-export for convenience
 export { useCallback };
-export const saveApiKey = (key: string) => storage.saveApiKey(key);
+export const saveApiKey = (modelId: ModelId, key: string) =>
+  storage.saveApiKey(modelId, key);

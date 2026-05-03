@@ -14,7 +14,7 @@ export function Chat() {
     setIsTyping,
     updateApp,
     modelId,
-    apiKey,
+    apiKeys,
     setToast,
   } = useStore();
 
@@ -31,6 +31,7 @@ export function Chat() {
     const trimmed = input.trim();
     if (!trimmed) return;
 
+    const apiKey = apiKeys[modelId];
     if (!apiKey) {
       setToast("Please set your API key first (click the key icon in the model selector)");
       return;
@@ -62,7 +63,7 @@ export function Chat() {
     } finally {
       setIsTyping(false);
     }
-  }, [input, activeId, apps, updateApp, setInput, setIsTyping, modelId, apiKey, setToast]);
+  }, [input, activeId, apps, updateApp, setInput, setIsTyping, modelId, apiKeys, setToast]);
 
   return (
     <div

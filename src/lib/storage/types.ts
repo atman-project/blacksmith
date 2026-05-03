@@ -3,8 +3,8 @@ import type { App, UIPreferences } from "../../types";
 export interface Storage {
   saveApps(apps: App[]): Promise<void>;
   savePreferences(prefs: UIPreferences): Promise<void>;
-  saveApiKey(key: string): Promise<void>;
-  loadApiKey(): Promise<string | undefined>;
+  saveApiKey(keyId: string, key: string): Promise<void>;
+  loadApiKeys(): Promise<Record<string, string>>;
   loadAll(): Promise<{
     apps: App[];
     preferences: UIPreferences | undefined;

@@ -55,11 +55,26 @@ describe("IndexedDbStorage", () => {
     expect(data?.apps[0].doc).toBe("updated");
   });
 
-  it("roundtrips the API key", async () => {
+  it("roundtrips API keys for multiple keyIds", async () => {
     const storage = new IndexedDbStorage();
-    expect(await storage.loadApiKey()).toBeUndefined();
+    expect(await storage.loadApiKeys()).toEqual({});
 
-    await storage.saveApiKey("sk-test");
-    expect(await storage.loadApiKey()).toBe("sk-test");
+    await storage.saveApiKey("claude-sonnet", "sk-anthropic");
+    await storage.saveApiKey("ollama", "ollama-key");
+    expect(await storage.loadApiKeys()).toEqual({
+      "claude-sonnet": "sk-anthropic",
+      ollama: "ollama-key",
+    });
+  });
+
+  it("clears a single API key when saving an empty string", async () => {
+    const storage = new IndexedDbStorage();
+    await storage.saveApiKey("claude-sonnet", "sk-anthropic");
+    await storage.saveApiKey("ollama", "ollama-key");
+
+    await storage.saveApiKey("ollama", "");
+    expect(await storage.loadApiKeys()).toEqual({
+      "claude-sonnet": "sk-anthropic",
+    });
   });
 });

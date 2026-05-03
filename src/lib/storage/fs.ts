@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import {
   BaseDirectory,
   exists,
@@ -15,7 +16,7 @@ const BASE = { baseDir: BaseDirectory.AppData } as const;
 const APPS_DIR = "apps";
 const APPS_INDEX = "apps.json";
 const PREFS_FILE = "preferences.json";
-const APIKEY_FILE = "apikey";
+const APIKEYS_INDEX = "apikeys.json";
 
 interface AppMeta {
   id: string;
@@ -85,18 +86,39 @@ export class FsStorage implements Storage {
     await atomicWrite(PREFS_FILE, JSON.stringify(prefs, null, 2));
   }
 
-  async saveApiKey(key: string): Promise<void> {
-    // TODO(Step 6): Move to OS keychain (macOS Keychain / Windows Credential
-    // Manager / Linux Secret Service). Plaintext for Phase 1 only.
-    await atomicWrite(APIKEY_FILE, key);
+  async saveApiKey(keyId: string, key: string): Promise<void> {
+    const ids = await this.loadKeyIds();
+    if (key) {
+      await invoke("set_api_key", { keyId, key });
+      if (!ids.includes(keyId)) ids.push(keyId);
+    } else {
+      await invoke("delete_api_key", { keyId });
+      const i = ids.indexOf(keyId);
+      if (i >= 0) ids.splice(i, 1);
+    }
+    await atomicWrite(APIKEYS_INDEX, JSON.stringify(ids, null, 2));
   }
 
-  async loadApiKey(): Promise<string | undefined> {
+  async loadApiKeys(): Promise<Record<string, string>> {
+    const ids = await this.loadKeyIds();
+    const result: Record<string, string> = {};
+    for (const keyId of ids) {
+      try {
+        const key = await invoke<string | null>("get_api_key", { keyId });
+        if (key) result[keyId] = key;
+      } catch {
+        // skip
+      }
+    }
+    return result;
+  }
+
+  private async loadKeyIds(): Promise<string[]> {
     try {
-      if (!(await exists(APIKEY_FILE, BASE))) return undefined;
-      return await readTextFile(APIKEY_FILE, BASE);
+      if (!(await exists(APIKEYS_INDEX, BASE))) return [];
+      return JSON.parse(await readTextFile(APIKEYS_INDEX, BASE));
     } catch {
-      return undefined;
+      return [];
     }
   }
 

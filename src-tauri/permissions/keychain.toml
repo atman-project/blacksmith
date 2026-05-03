@@ -1,0 +1,6 @@
+"$schema" = "schemas/schema.json"
+
+[[permission]]
+identifier = "allow-keychain"
+description = "Allow reading, writing, and deleting the API key in the OS keychain."
+commands.allow = ["get_api_key", "set_api_key", "delete_api_key"]

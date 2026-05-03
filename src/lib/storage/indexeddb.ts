@@ -42,17 +42,29 @@ export class IndexedDbStorage implements Storage {
     await db.put(PREFS_STORE, prefs, "ui");
   }
 
-  async saveApiKey(key: string): Promise<void> {
+  async saveApiKey(keyId: string, key: string): Promise<void> {
     const db = await this.getDB();
-    await db.put(PREFS_STORE, key, "apiKey");
+    const existing = ((await db.get(PREFS_STORE, "apiKeys")) ?? {}) as Record<
+      string,
+      string
+    >;
+    if (key) {
+      existing[keyId] = key;
+    } else {
+      delete existing[keyId];
+    }
+    await db.put(PREFS_STORE, existing, "apiKeys");
   }
 
-  async loadApiKey(): Promise<string | undefined> {
+  async loadApiKeys(): Promise<Record<string, string>> {
     try {
       const db = await this.getDB();
-      return await db.get(PREFS_STORE, "apiKey");
+      return ((await db.get(PREFS_STORE, "apiKeys")) ?? {}) as Record<
+        string,
+        string
+      >;
     } catch {
-      return undefined;
+      return {};
     }
   }
 

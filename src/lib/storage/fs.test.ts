@@ -17,6 +17,29 @@ import type { App, UIPreferences } from "../../types";
 let tmpDir = "";
 const pathInTmpDir = (relativePath: string) => join(tmpDir, relativePath);
 
+// In-memory keychain backing the mocked invoke() below. Keyed by keyId.
+const keychain = new Map<string, string>();
+
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: async (
+    cmd: string,
+    args?: { keyId?: string; key?: string },
+  ) => {
+    switch (cmd) {
+      case "get_api_key":
+        return keychain.get(args!.keyId!) ?? null;
+      case "set_api_key":
+        keychain.set(args!.keyId!, args!.key!);
+        return undefined;
+      case "delete_api_key":
+        keychain.delete(args!.keyId!);
+        return undefined;
+      default:
+        throw new Error(`unmocked invoke: ${cmd}`);
+    }
+  },
+}));
+
 vi.mock("@tauri-apps/plugin-fs", () => ({
   BaseDirectory: { AppData: 0 },
   exists: async (relativePath: string) => {
@@ -97,6 +120,7 @@ async function walk(dir: string): Promise<string[]> {
 
 beforeEach(async () => {
   tmpDir = await mkdtemp(join(tmpdir(), "blacksmith-test-"));
+  keychain.clear();
 });
 
 afterEach(async () => {
@@ -169,11 +193,30 @@ describe("FsStorage", () => {
     }
   });
 
-  it("roundtrips the API key", async () => {
+  it("roundtrips multiple API keys via the OS keychain", async () => {
     const storage = new FsStorage();
-    expect(await storage.loadApiKey()).toBeUndefined();
+    expect(await storage.loadApiKeys()).toEqual({});
 
-    await storage.saveApiKey("sk-test");
-    expect(await storage.loadApiKey()).toBe("sk-test");
+    await storage.saveApiKey("claude-sonnet", "sk-anthropic");
+    await storage.saveApiKey("ollama", "ollama-key");
+
+    expect(keychain.get("claude-sonnet")).toBe("sk-anthropic");
+    expect(keychain.get("ollama")).toBe("ollama-key");
+    expect(await storage.loadApiKeys()).toEqual({
+      "claude-sonnet": "sk-anthropic",
+      ollama: "ollama-key",
+    });
+  });
+
+  it("clears a single keychain entry when saving an empty key", async () => {
+    const storage = new FsStorage();
+    await storage.saveApiKey("claude-sonnet", "sk-anthropic");
+    await storage.saveApiKey("ollama", "ollama-key");
+
+    await storage.saveApiKey("ollama", "");
+    expect(keychain.has("ollama")).toBe(false);
+    expect(await storage.loadApiKeys()).toEqual({
+      "claude-sonnet": "sk-anthropic",
+    });
   });
 });
