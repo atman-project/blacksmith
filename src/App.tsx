@@ -18,8 +18,17 @@ import { TopBar } from "./components/TopBar";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { CommitDialog } from "./components/CommitDialog";
 import { Toast } from "./components/Toast";
+import { MobileGate } from "./components/MobileGate";
+import { useIsMobileWeb } from "./lib/useIsMobileWeb";
 
 export default function App() {
+  const isMobileWeb = useIsMobileWeb();
+  if (isMobileWeb) return <MobileGate />;
+
+  return <AppInner />;
+}
+
+function AppInner() {
   const [apps, setApps] = useState<AppType[]>([createInitialApp()]);
   const [activeId, setActiveId] = useState("app-1");
   const [sidebarOpen, setSidebarOpen] = useState(true);
