@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Icons } from "./Icons";
 import { useStore, extractTitle, createNewApp } from "../lib/store";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 export function Sidebar() {
   const {
@@ -19,6 +21,8 @@ export function Sidebar() {
     setInput("");
   };
 
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
   const handleDeleteApp = (id: string) => {
     const remaining = apps.filter((a) => a.id !== id);
     if (remaining.length === 0) {
@@ -31,9 +35,15 @@ export function Sidebar() {
     if (activeId === id) setActiveId(remaining[0].id);
   };
 
+  const confirmDelete = () => {
+    if (pendingDeleteId) handleDeleteApp(pendingDeleteId);
+    setPendingDeleteId(null);
+  };
+
   const SIDEBAR_W = sidebarOpen ? 220 : 48;
 
   return (
+    <>
     <div
       style={{
         width: SIDEBAR_W,
@@ -185,7 +195,7 @@ export function Sidebar() {
                 data-delete=""
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDeleteApp(a.id);
+                  setPendingDeleteId(a.id);
                 }}
                 style={{
                   opacity: 0,
@@ -220,6 +230,17 @@ export function Sidebar() {
       {/* New app button */}
       <NewAppButton />
     </div>
+    {pendingDeleteId !== null && (
+      <ConfirmDialog
+        title="DELETE APP"
+        message="This app and all its history will be permanently deleted. This can't be undone."
+        confirmLabel="DELETE"
+        danger
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDeleteId(null)}
+      />
+    )}
+    </>
   );
 }
 
